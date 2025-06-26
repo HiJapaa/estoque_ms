@@ -73,11 +73,17 @@ function App() {
       const worksheet = workbook.Sheets[ sheetName ]
       const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
       const contagemArquivo = {}
+      const descricaoArquivo = {}
+      console.log(data)
       data.forEach((row, idx) => {
         if (idx === 0) return
         const codigo = row[ 2 ]
+        const descricao = row[ 1 ]
         if (codigo) {
           contagemArquivo[ codigo ] = (contagemArquivo[ codigo ] || 0) + 1
+          if (!descricaoArquivo[ codigo ]) {
+            descricaoArquivo[ codigo ] = descricao || ''
+          }
         }
       })
       const contagemFirebase = {}
@@ -97,10 +103,11 @@ function App() {
       todosCodigos.forEach(codigo => {
         const qFirebase = contagemFirebase[ codigo ] || 0
         const qArquivo = contagemArquivo[ codigo ] || 0
+        const descricao = descricaoArquivo[ codigo ] || ''
         if (qFirebase > qArquivo) {
-          sobrando.push({ codigo, quantidade_loja: qFirebase, quantidade_arquivo: qArquivo, sobrando: qFirebase - qArquivo })
+          sobrando.push({ codigo, descricao, quantidade_loja: qFirebase, quantidade_arquivo: qArquivo, sobrando: qFirebase - qArquivo })
         } else if (qFirebase < qArquivo) {
-          faltando.push({ codigo, quantidade_loja: qFirebase, quantidade_arquivo: qArquivo, faltando: qArquivo - qFirebase })
+          faltando.push({ codigo, descricao, quantidade_loja: qFirebase, quantidade_arquivo: qArquivo, faltando: qArquivo - qFirebase })
         }
       })
       exportResultado(sobrando, faltando)
